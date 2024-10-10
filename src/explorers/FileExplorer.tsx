@@ -1,3 +1,3 @@
-export default (props: { visible: boolean }) => {
-  return <div></div>;
+export default (props: { isVisible: boolean }) => {
+  return <div style={{ display: props.isVisible ? '' : 'none' }}>File</div>;
 };

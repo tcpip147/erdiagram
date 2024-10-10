@@ -3,6 +3,7 @@ import { createContextProvider } from '@/utils/ContextProvider';
 import '@vscode/codicons/dist/codicon.css';
 import { useContext, useEffect, useRef, useState } from 'react';
 import * as styles from './ContentPane.module.scss';
+import FileExplorer from '@/explorers/FileExplorer';
 
 /* --- Context Start --- */
 interface TabType {
@@ -69,7 +70,11 @@ const Explorer = () => {
   const [explorerWidth, setExplorerWidth] = localContext.explorerWidth;
   const [isVisibleExplorer, setIsVisibleExplorer] = localContext.isVisibleExplorer;
 
-  return <AbstractWindow className={styles.explorer} style={{ width: explorerWidth, display: isVisibleExplorer ? 'block' : 'none' }} focusable={true}></AbstractWindow>;
+  return (
+    <AbstractWindow className={styles.explorer} style={{ width: explorerWidth, display: isVisibleExplorer ? 'block' : 'none' }} focusable={true}>
+      <FileExplorer isVisible={selectedSidebarMenuItem == 'FileExplorer'} />
+    </AbstractWindow>
+  );
 };
 
 const ResizingIndicator = () => {
