@@ -1,0 +1,10 @@
+.canvasContainer {
+  width: 100%;
+  height: calc(100% - 49px);
+  background: #1e1e1f;
+  position: relative;
+
+  .canvas {
+    display: block;
+  }
+}

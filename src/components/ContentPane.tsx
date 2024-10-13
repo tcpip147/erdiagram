@@ -1,42 +1,28 @@
 import AbstractWindow from '@/components/abstract/AbstractWindow';
+import { GlobalContext } from '@/components/App';
+import CanvasContainer from '@/components/CanvasContainer';
+import FileExplorer, { FileType } from '@/explorers/FileExplorer';
 import { createContextProvider } from '@/utils/ContextProvider';
 import '@vscode/codicons/dist/codicon.css';
 import { useContext, useEffect, useRef, useState } from 'react';
 import * as styles from './ContentPane.module.scss';
-import FileExplorer from '@/explorers/FileExplorer';
+import Pallete from '@/components/Pallete';
 
 /* --- Context Start --- */
-interface TabType {
-  filename: string;
-  title: string;
-}
-
 interface LocalContextType {
-  explorerWidth: [number, React.Dispatch<React.SetStateAction<number>>];
-  tabFolderWidth: [number, React.Dispatch<React.SetStateAction<number>>];
   selectedSidebarMenuItem: [string, React.Dispatch<React.SetStateAction<string>>];
-  isVisibleExplorer: [boolean, React.Dispatch<React.SetStateAction<boolean>>];
-  loadedTabs: [TabType[], React.Dispatch<React.SetStateAction<TabType[]>>];
-  activatedTab: [TabType, React.Dispatch<React.SetStateAction<TabType>>];
 }
 
 const [LocalContext, LocalContextProvider] = createContextProvider<LocalContextType>({
-  explorerWidth: 250,
-  tabFolderWidth: 0,
   selectedSidebarMenuItem: 'FileExplorer',
-  isVisibleExplorer: true,
-  loadedTabs: [
-    { filename: 'Sample.erd.json', title: 'Sample.erd.json' },
-    { filename: 'HelloWorld.erd.json', title: 'HelloWorld.erd.json' },
-  ],
-  activatedTab: { filename: 'HelloWorld.erd.json', title: 'HelloWorld.erd.json' },
 });
 /* --- Context End --- */
 
 const IconButton = (props: { icon: string; title: string; linkTo: string }) => {
+  const globalContext = useContext(GlobalContext)!;
   const localContext = useContext(LocalContext)!;
   const [selectedSidebarMenuItem, setSelectedSidebarMenuItem] = localContext.selectedSidebarMenuItem;
-  const [isVisibleExplorer, setIsVisibleExplorer] = localContext.isVisibleExplorer;
+  const [isVisibleExplorer, setIsVisibleExplorer] = globalContext.isVisibleExplorer;
 
   const handleOnClick = () => {
     if (selectedSidebarMenuItem == props.linkTo) {
@@ -65,10 +51,11 @@ const Sidebar = () => {
 };
 
 const Explorer = () => {
+  const globalContext = useContext(GlobalContext)!;
   const localContext = useContext(LocalContext);
   const [selectedSidebarMenuItem, setSelectedSidebarMenuItem] = localContext.selectedSidebarMenuItem;
-  const [explorerWidth, setExplorerWidth] = localContext.explorerWidth;
-  const [isVisibleExplorer, setIsVisibleExplorer] = localContext.isVisibleExplorer;
+  const [explorerWidth, setExplorerWidth] = globalContext.explorerWidth;
+  const [isVisibleExplorer, setIsVisibleExplorer] = globalContext.isVisibleExplorer;
 
   return (
     <AbstractWindow className={styles.explorer} style={{ width: explorerWidth, display: isVisibleExplorer ? 'block' : 'none' }} focusable={true}>
@@ -79,9 +66,10 @@ const Explorer = () => {
 
 const ResizingIndicator = () => {
   const ref = useRef(null);
+  const globalContext = useContext(GlobalContext)!;
   const localContext = useContext(LocalContext)!;
-  const [explorerWidth, setExplorerWidth] = localContext.explorerWidth;
-  const [isVisibleExplorer, setIsVisibleExplorer] = localContext.isVisibleExplorer;
+  const [explorerWidth, setExplorerWidth] = globalContext.explorerWidth;
+  const [isVisibleExplorer, setIsVisibleExplorer] = globalContext.isVisibleExplorer;
   const [isVisible, setIsVisible] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
 
@@ -145,20 +133,21 @@ const ResizingIndicator = () => {
     <div
       ref={ref}
       className={`${styles.resizingIndicator} ${isVisible || isResizing ? styles.on : ''}`}
-      style={{ left: explorerWidth + 39, display: isVisibleExplorer ? 'block' : 'none' }}
+      style={{ left: explorerWidth + 38, display: isVisibleExplorer ? 'block' : 'none' }}
       onMouseEnter={handleOnMouseEnter}
       onMouseLeave={handleOnMouseLeave}
     ></div>
   );
 };
 
-const ContentPane = () => {
+const LeftMenu = () => {
+  const globalContext = useContext(GlobalContext)!;
   const localContext = useContext(LocalContext);
-  const [explorerWidth, setExplorerWidth] = localContext.explorerWidth;
-  const [isVisibleExplorer, setIsVisibleExplorer] = localContext.isVisibleExplorer;
+  const [explorerWidth, setExplorerWidth] = globalContext.explorerWidth;
+  const [isVisibleExplorer, setIsVisibleExplorer] = globalContext.isVisibleExplorer;
 
   return (
-    <div className={styles.leftMenu} style={{ width: isVisibleExplorer ? explorerWidth + 42 : 41 }}>
+    <div className={styles.leftMenu} style={{ width: isVisibleExplorer ? explorerWidth + 40 : 40 }}>
       <Sidebar />
       <Explorer />
       <ResizingIndicator />
@@ -166,38 +155,48 @@ const ContentPane = () => {
   );
 };
 
-const TabButton = (props: { filename: string; title: string }) => {
-  const localContext = useContext(LocalContext);
-  const [activatedTab, setActivatedTab] = localContext.activatedTab;
+const TabButton = (props: { file: FileType }) => {
+  const globalContext = useContext(GlobalContext);
+  const [loadedTabs, setLoadedTabs] = globalContext.loadedTabs;
+  const [activatedTab, setActivatedTab] = globalContext.activatedTab;
+
+  const handleOnClick = () => {
+    setActivatedTab(props.file);
+  };
+
+  const handleOnClickClose = (e: React.MouseEvent) => {
+    const newLoadedTabs = loadedTabs.filter((file) => file.path != props.file.path || file.name != props.file.name);
+    setLoadedTabs(newLoadedTabs);
+    if (activatedTab?.path == props.file.path && activatedTab?.name == props.file.name) {
+      setActivatedTab(newLoadedTabs.length == 0 ? null : newLoadedTabs[newLoadedTabs.length - 1]);
+    }
+    e.stopPropagation();
+  };
 
   return (
-    <div className={`${styles.tabButton} ${props.filename == activatedTab.filename ? styles.on : ''}`}>
-      <div className={styles.title}>{props.title}</div>
-      <div className={`${styles.close} codicon codicon-chrome-close`}></div>
-    </div>
-  );
-};
-
-const CanvasContainer = () => {
-  return (
-    <div className={styles.canvasContainer}>
-      <canvas></canvas>
+    <div className={`${styles.tabButton} ${props.file.path == activatedTab?.path && props.file.name == activatedTab.name ? styles.on : ''}`} onClick={handleOnClick}>
+      <div className={`${styles.icon} codicon codicon-${props.file.icon}`}></div>
+      <div className={styles.title}>{props.file.name}</div>
+      <div className={`${styles.close} codicon codicon-chrome-close`} onClick={handleOnClickClose}></div>
     </div>
   );
 };
 
 const TabFolder = () => {
-  const localContext = useContext(LocalContext);
-  const [loadedTabs, setLoadedTabs] = localContext.loadedTabs;
+  const globalContext = useContext(GlobalContext);
+  const [loadedTabs, setLoadedTabs] = globalContext.loadedTabs;
 
   return (
-    <AbstractWindow className={styles.tabFolder} focusable={true}>
+    <AbstractWindow className={`${styles.tabFolder} tabFolder`} focusable={true}>
       <div className={styles.tabNav}>
         {loadedTabs.map((tab) => (
-          <TabButton key={tab.filename} filename={tab.filename} title={tab.title} />
+          <TabButton key={tab.path + '/' + tab.name} file={tab} />
         ))}
       </div>
-      <CanvasContainer />
+      {loadedTabs.map((tab) => (
+        <CanvasContainer key={tab.path + '/' + tab.name} file={tab} />
+      ))}
+      {loadedTabs.length > 0 ? <Pallete /> : null}
     </AbstractWindow>
   );
 };
@@ -206,7 +205,7 @@ export default () => {
   return (
     <div className={styles.contentPane}>
       <LocalContextProvider>
-        <ContentPane />
+        <LeftMenu />
         <TabFolder />
       </LocalContextProvider>
     </div>

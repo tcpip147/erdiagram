@@ -1,0 +1,29 @@
+.pallete {
+  width: 100%;
+  height: 49px;
+  border-top: 1px solid rgb(80, 80, 81);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 5px;
+
+  .line {
+    display: flex;
+    gap: 5px;
+
+    .palleteButton {
+      display: inline-block;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgb(80, 80, 81);
+      border-radius: 5px;
+      cursor: pointer;
+      box-sizing: border-box;
+
+      &.on {
+        border: 2px solid green;
+      }
+    }
+  }
+}

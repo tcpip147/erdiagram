@@ -1,0 +1,61 @@
+:global(.focused) {
+  :local {
+    .fileExplorer {
+      .directory {
+        &.on {
+          background: rgb(4, 57, 93);
+          border: 1px solid rgb(0, 127, 212);
+        }
+      }
+      .file {
+        &.on {
+          background: rgb(4, 57, 93);
+          border: 1px solid rgb(0, 127, 212);
+        }
+      }
+    }
+  }
+}
+
+.fileExplorer {
+  .directory {
+    border: 1px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+
+    span {
+      vertical-align: top;
+    }
+
+    :global(.codicon) {
+      font-size: 14px;
+      margin: 2px 5px;
+    }
+
+    &.on {
+      background: rgb(55, 55, 61);
+      border: 1px solid rgb(55, 55, 61);
+    }
+  }
+
+  .file {
+    border: 1px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+
+    span {
+      vertical-align: top;
+    }
+
+    :global(.codicon) {
+      font-size: 14px;
+      margin: 2px 5px;
+      color: rgb(129, 129, 190);
+    }
+
+    &.on {
+      background: rgb(55, 55, 61);
+      border: 1px solid rgb(55, 55, 61);
+    }
+  }
+}
